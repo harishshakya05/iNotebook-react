@@ -8,7 +8,6 @@ const fetchuser = (req, res, next) => {
     }
     try {
         var decoded = jwt.verify(token, JWT_SECRET);
-        console.log("decoded",decoded);
         req.user = decoded.id;
         next();
     } catch (error) {

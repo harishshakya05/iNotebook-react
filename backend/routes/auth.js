@@ -20,7 +20,6 @@ router.post("/signup", [
         return res.send({ errors: result.array() });
     }
     try {
-
         let user = await User.findOne({ email: req.body.email })
         if (user) {
             return res.status(400).json({ error: "sorry user with same email already exists" })
