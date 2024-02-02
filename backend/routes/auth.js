@@ -16,15 +16,15 @@ router.post("/signup", [
     body('password', 'enter valid password').isLength({ min: 5 }),
 ], async (req, res) => {
     const result = validationResult(req);
+    let status = false;
     if (!result.isEmpty()) {
         return res.send({ errors: result.array() });
     }
     try {
         let user = await User.findOne({ email: req.body.email })
         if (user) {
-            return res.status(400).json({ error: "sorry user with same email already exists" })
+            return res.status(400).json({ status, error: "sorry user with same email already exists" })
         }
-
         const securePassword = await bcrypt.hash(req.body.password, saltRounds);
         console.log(securePassword);
         user = await User.create({
@@ -32,12 +32,11 @@ router.post("/signup", [
             email: req.body.email,
             password: securePassword
         })
-
-        var token = jwt.sign({ id: user.id }, JWT_SECRET);
-        console.log(token);
-        res.json({ token });
+        const token = jwt.sign({ id: user.id }, JWT_SECRET);
+        status = true;
+        res.json({ status, token });
     } catch (error) {
-        return res.status(500).json({ error: "some error occured" })
+        return res.status(500).json({ status, error: "some error occured" })
     }
 })
 
@@ -53,15 +52,17 @@ router.post('/login', [
     const { email, password } = req.body;
     try {
         let user = await User.findOne({ email })
+        let status = false;
         if (!user) {
-            return res.status(400).json({ error: "Please try to login with correct credential." })
+            return res.status(400).json({ status, error: "Please try to login with correct credential." })
         }
         const passwordCompare = await bcrypt.compare(password, user.password);
         if (!passwordCompare) {
-            return res.status(400).json({ error: "Please try to login with correct credential111111." })
+            return res.status(400).json({ status, error: "Please try to login with correct credential111111." })
         }
-        var token = jwt.sign({ id: user.id }, JWT_SECRET);
-        res.json({ token });
+        const token = jwt.sign({ id: user.id }, JWT_SECRET);
+        status = true;
+        res.json({ status, token });
     } catch (error) {
         return res.status(500).send("Internal server error")
     }
@@ -76,6 +77,6 @@ router.get('/getuser', fetchuser, async (req, res) => {
     } catch (error) {
         return res.status(500).send("Internal server error")
     }
-    
+
 })
 module.exports = router;
